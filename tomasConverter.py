@@ -72,6 +72,7 @@ with open('output.csv', 'w') as w:
         
         if do_write:
             w.write(f'{company_name},{touristic_object_type},{classification},{street},{zip_code},{city_de},{country_code},{internet},{email},{phone},{fax},')
+            string_images = ''
             for entry in images_list:
-                w.write(f'{entry},')
-            w.write(f'{last_modification},{service_object_id},{export_date},{latitude},{longitude}\n')
+                string_images += f'{entry}&'
+            w.write(f'{string_images[:-1]},{last_modification},{service_object_id},{export_date},{latitude},{longitude}\n')
