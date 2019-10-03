@@ -15,8 +15,16 @@ provider_types = {
     'TDS00020010059375379': 'Agrotourismus' # Agrotourismus
 }
 
+xml_name = 'tomas-gr-cc0.xml'
 # Parse the xml-file with the given name
-xmlTree = ET.parse('tomas-gr-cc0.xml')
+try:
+    xmlTree = ET.parse(xml_name)
+except FileNotFoundError:
+    print(f'The file {xml_name} does not exist.')
+    sys.exit()
+except ET.ParseError:
+    print(f'The file {xml_name} somehow cannot be parsed')
+    sys.exit()
 root = xmlTree.getroot()
 
 prefix = '{http://www.tbox.ch/dms/xmlstandardexport}'
