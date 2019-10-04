@@ -28,6 +28,17 @@ touple_dictionary = {
     'A': ('TDS00020010059375379', 'Agrotourismus')
 }
 
+address_dictionary = {
+    'CompanyName1': None,
+    'Phone': None,
+    'Fax': None,
+    'Email': None,
+    'Internet': None,
+    'Street': None,
+    'CountryCode': None,
+    'ZipCode': None
+}
+
 xml = '.xml'
 csv = '.csv'
 xml_name = ''
@@ -122,27 +133,13 @@ def convert(xml_name, csv_name):
                     longitude = group.text
                 elif group.tag == 'Addresses':
                     for address_data in group[0]:
-                        if address_data.tag == 'CompanyName1':
-                            company_name = address_data.text
-                        elif address_data.tag == 'Phone':
-                            phone = address_data.text
-                        elif address_data.tag == 'Fax':
-                            fax = address_data.text
-                        elif address_data.tag == 'Email':
-                            email = address_data.text
-                        elif address_data.tag == 'Internet':
-                            internet = address_data.text
-                        elif address_data.tag == 'Street':
-                            street = address_data.text
-                        elif address_data.tag == 'CountryCode':
-                            country_code = address_data.text
-                        elif address_data.tag == 'ZipCode':
-                            zip_code = address_data.text
-                        elif address_data.tag == 'City':
+                        if address_data.tag == 'City':
                             for value in address_data[0]:
                                 if value.attrib.get('LanguageCode') == 'de':
                                     city_de = value.text
                                     break
+                        elif address_data.tag in ['CompanyName1','Phone','Fax','Email','Internet','Street','CountryCode','ZipCode']:
+                            address_dictionary[address_data.tag] = address_data.text
                 elif group.tag == 'Images':
                     images_list = []
                     for image in group:
@@ -152,6 +149,14 @@ def convert(xml_name, csv_name):
                                 break
             # Save all the information into the csv-file
             if do_write:
+                company_name = address_dictionary.get('CompanyName1')
+                street = address_dictionary.get('Street')
+                zip_code = address_dictionary.get('ZipCode')
+                country_code = address_dictionary.get('CountryCode')
+                internet = address_dictionary.get('Internet')
+                email = address_dictionary.get('Email')
+                phone = address_dictionary.get('Phone')
+                fax = address_dictionary.get('Fax')
                 w.write(f'{company_name},{touristic_object_type},{classification},{street},{zip_code},{city_de},{country_code},{internet},{email},{phone},{fax},')
                 string_images = ''
                 for entry in images_list:
@@ -180,8 +185,12 @@ else:
                 print(f'After the -x | --xml option, a xml-file should follow.{help}')
                 sys.exit()
         elif option[0] in ('-c', '--csv'):
-            if option[1][-4:] == csv:
-                csv_name = option[1]
+            if len(option[1]) > 4:
+                if option[1][-4:] == csv:
+                    csv_name = option[1]
+                else:
+                    print(f'After the -c | --csv option, a csv-file should follow.{help}')
+                    sys.exit()
             else:
                 print(f'After the -c | --csv option, a csv-file should follow.{help}')
                 sys.exit()
