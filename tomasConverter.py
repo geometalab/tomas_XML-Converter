@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import sys, getopt
 import os.path
 
-# Dictionary of TouristicObjectTypes
+# Dictionary of TouristicObjectTypes, to be filled
 provider_types = {
     'WBX00020010000100218': None, #Ferienwohnung
     'WBX00020010000100214': None, #Hotel
@@ -15,6 +15,7 @@ provider_types = {
     'TDS00020010059375379': None  #Agrotourismus
 }
 
+# The in the argument after option -t given keys fill the dictionary provider_types with values
 touple_dictionary = {
     'FW': ('WBX00020010000100218', 'Ferienwohnung'),
     'H': ('WBX00020010000100214', 'Hotel'),
