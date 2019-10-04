@@ -5,14 +5,26 @@ import os.path
 # Dictionary of TouristicObjectTypes
 provider_types = {
     'WBX00020010000100218': None, #Ferienwohnung
-    'WBX00020010000100214': 'Hotel', #Hotel
-    'WBX00020010000100258': 'Gruppenunterkunft', #Gruppenunterkunft
+    'WBX00020010000100214': None, #Hotel
+    'WBX00020010000100258': None, #Gruppenunterkunft
     'WBX00020010000100220': None, #Ferienhaus
     'TDS00020010011658402': None, #Gästezimmer
     'WBX00020010000100701': None, #Camping
     'TDS00020010900364614': None, #Maiensäss
-    'TDS00020010079106980': None, # Chalet
-    'TDS00020010059375379': 'Agrotourismus' # Agrotourismus
+    'TDS00020010079106980': None, #Chalet
+    'TDS00020010059375379': None #Agrotourismus
+}
+
+touple_dictionary = {
+    'FW': ('WBX00020010000100218', 'Ferienwohnung'),
+    'H': ('WBX00020010000100214', 'Hotel'),
+    'GU': ('WBX00020010000100258', 'Gruppenunterkunft'),
+    'FH': ('WBX00020010000100220', 'Ferienhaus'),
+    'GZ': ('TDS00020010011658402', 'Gästezimmer'),
+    'C': ('WBX00020010000100701', 'Camping'),
+    'M': ('TDS00020010900364614', 'Maiensäss'),
+    'CH': ('TDS00020010079106980', 'Chalet'),
+    'A': ('TDS00020010059375379', 'Agrotourismus')
 }
 
 xml = '.xml'
@@ -25,8 +37,17 @@ def show_help():
     pass
 
 def create_dictionary(arguments):
-    pass
+    if arguments == '':
+        arguments = 'FW,H,GU,FH,GZ,C,M,CH,A'
+    argument_list = arguments.split(',')
+    for arg in argument_list:
+        touple = touple_dictionary.get(arg)
+        if touple is None:
+            print('Only use suitable arguments for the option -t | --types.')
+            sys.exit()
+        provider_types[touple[0]] = touple[1]
 
+# Main-function: Conversion of the xml-file
 def convert(xml_name, csv_name):
     # Parse the xml-file with the given name
     try:
@@ -114,6 +135,7 @@ except getopt.GetoptError:
     print('Use options correctly.')
     sys.exit(2)
 
+# Handle the given options
 if not opts or opts[0][0] in ('-?', '--help'):
     show_help()
 elif len(opts) > 4:
@@ -133,7 +155,7 @@ else:
                 print('After the -c | --csv option, a csv-file should follow.')
                 sys.exit()
         elif option[0] in ('-t', '--types'):
-            create_dictionary(option[1])
+            create_dictionary(option[1].upper())
         elif option[0] in ('-o', '--overwrite'):
             allow_overwrite = True
     if xml_name == '':
