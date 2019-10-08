@@ -59,12 +59,14 @@ Options in brackets are optional.
 
   -x, --xml\t\tOption which specifies the following argument as the xml-file to parse.
   input\t\t\tSpecifies the xml-file to convert. Required after the -x | --xml option.
-  -c, --csv\t\tOption which specifies the following argument as the csv-output-file.
+  -c, --csv\t\tOption which specifies the following argument as the name of the csv-output-file.
   output\t\tSpecifies the name of the csv-output-file. Required after the -c | --csv option.
+  if the -c | --csv option is left out, the name of the csv-file will be automatically generated.
   -t, --types\t\tOption which specifies the following argument as a list of touristic object types to convert.
   types\t\t\tList of touristic object types separated by commas.
   \t\t\tFW=Ferienwohnung, H=Hotel, GU=Gruppenunterkunft, FH=Ferienhaus, GZ=Gästezimmer, C=Camping,
   \t\t\tM=Maiensäss, CH=Chalet, A=Agrotourismus.
+  if the -t | --types option is left out, all the object-types will be included.
   -o | --overwrite\tOption which allows any existing csv-file to get overwritten.
 
 Examples on how to use tomasConverter.py
@@ -78,8 +80,6 @@ Examples on how to use tomasConverter.py
 
 # Controll which touristic object types will get converted
 def create_dictionary(arguments):
-    if arguments == '':
-        arguments = 'FW,H,GU,FH,GZ,C,M,CH,A'
     argument_list = arguments.split(',')
     for arg in argument_list:
         touple = touple_dictionary.get(arg)
@@ -205,7 +205,7 @@ else:
     if csv_name == '':
         csv_name = xml_name.split('.')[0] + csv
     if dict_is_default:
-        create_dictionary('')
+        create_dictionary('FW,H,GU,FH,GZ,C,M,CH,A')
     if os.path.isfile(csv_name) and not allow_overwrite:
         print(f'{csv_name} already exists. Use the -o | --overwrite option to allow overwriting.{help}')
     else:
