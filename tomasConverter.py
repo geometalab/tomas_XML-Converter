@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
 import sys, getopt
 import os.path
+import argparse
+from pathlib import Path
 
 # Dictionary of TouristicObjectTypes, to be filled
 provider_types = {
@@ -39,47 +41,47 @@ address_dictionary = {
     'ZipCode': None
 }
 
-xml = '.xml'
-csv = '.csv'
-xml_name = ''
-csv_name = ''
-allow_overwrite = False
-dict_is_default = True
-help = '\nRun script with option -? | --help for clarification.'
+examples = '''Touristic object types:
 
-# Display options and some examples
-def show_help():
-    print('''Converts a tomas-xml-file to a csv-file
-
-python tomasConverter.py -x | --xml input [-c | --csv output] [-t | --types types] [-o | --overwrite]
-\t-> for converting
-python tomasConverter.py [-? | --help]
-\t-> for help
-Options in brackets are optional.
-
-  -x, --xml\t\tOption which specifies the following argument as the xml-file to parse.
-  input\t\t\tSpecifies the xml-file to convert. Required after the -x | --xml option.
-  -c, --csv\t\tOption which specifies the following argument as the name of the csv-output-file.
-  output\t\tSpecifies the name of the csv-output-file. Required after the -c | --csv option.
-  if the -c | --csv option is left out, the name of the csv-file will be automatically generated.
-  -t, --types\t\tOption which specifies the following argument as a list of touristic object types to convert.
-  types\t\t\tList of touristic object types separated by commas.
-  \t\t\tFW=Ferienwohnung, H=Hotel, GU=Gruppenunterkunft, FH=Ferienhaus, GZ=Gästezimmer, C=Camping,
-  \t\t\tM=Maiensäss, CH=Chalet, A=Agrotourismus.
-  if the -t | --types option is left out, all the object-types will be included.
-  -o | --overwrite\tOption which allows any existing csv-file to get overwritten.
+  FW=Ferienwohnung, H=Hotel, GU=Gruppenunterkunft, FH=Ferienhaus, GZ=Gästezimmer, C=Camping,
+  M=Maiensäss, CH=Chalet, A=Agrotourismus , D=Default.
+  if d or D is given, all the object-types will be included
 
 Examples on how to use tomasConverter.py
 
-  python tomasConverter.py -x example.xml
+  python tomasConverter.py example.xml D
   \t-> Parse the file "example.xml" and create "example.csv", convert all touristic object types.
-  python tomasConverter.py -x example.xml -t H,CH,A
+  python tomasConverter.py example.xml H,CH,A
   \t-> Parse the file "example.xml" and create "example.csv", convert only Hotels, Chalet, Agrotourismus.
-  python tomasConverter.py -x example.xml -c different.csv -o
-  \t-> Parse the file "example.xml" and overwrite already existing "different.csv".''')
+  python tomasConverter.py example.xml D different.csv -o
+  \t-> Parse the file "example.xml" and overwrite already existing "different.csv".'''
+
+def main():
+    args = parse_arguments()
+    input_file = Path(args.input)
+    output_file = input_file.parent / f'{input_file.stem}.csv' if args.output is None else Path(args.output)
+    create_dictionary(args.types.upper())
+    if output_file.exists() and not args.overwrite:
+        print(f'{output_file} already exists. Use -o or --overwrite to allow overwriting.')
+        sys.exit(1)
+    try:
+        convert(input_file, output_file)
+        print(f'Conversion complete. New file {output_file} created')
+    except:
+        print('Conversion failed.')
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Converts a tomas XML file to a csv file', epilog=examples, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('input', type=str, help='the XML file to convert')
+    parser.add_argument('types', type=str, help='list of touristic object types separated by commas. For more information, see below')
+    parser.add_argument('output', type=str, nargs='?', help='the name of the csv output file')
+    parser.add_argument('-o', '--overwrite', action='store_true', help='if given, overwrite an existing csv file if present')
+    return parser.parse_args()
 
 # Controll which touristic object types will get converted
 def create_dictionary(arguments):
+    if arguments == 'D':
+        arguments = 'FW,H,GU,FH,GZ,C,M,CH,A'
     argument_list = arguments.split(',')
     for arg in argument_list:
         touple = touple_dictionary.get(arg)
@@ -163,54 +165,5 @@ def convert(xml_name, csv_name):
                     string_images += f'{entry}&'
                 w.write(f'{string_images[:-1]},{last_modification},{service_object_id},{export_date},{latitude},{longitude}\n')
 
-# Specifies which options are allowed
-argv = sys.argv[1:]
-try:
-    opts, args = getopt.getopt(argv,'?x:c:t:o',['help', 'xml', 'csv', 'types', 'overwrite'])
-except getopt.GetoptError:
-    print(f'Use options correctly.{help}')
-    sys.exit(2)
-
-# Handle the given options
-if not opts or opts[0][0] in ('-?', '--help'):
-    show_help()
-elif len(opts) > 4:
-    print(f'Too many options.{help}')
-else:
-    for option in opts:
-        if option[0] in ('-x', '--xml'):
-            if option[1][-4:] == xml:
-                xml_name = option[1]
-            else:
-                print(f'After the -x | --xml option, a xml-file should follow.{help}')
-                sys.exit()
-        elif option[0] in ('-c', '--csv'):
-            if len(option[1]) > 4:
-                if option[1][-4:] == csv:
-                    csv_name = option[1]
-                else:
-                    print(f'After the -c | --csv option, a csv-file should follow.{help}')
-                    sys.exit()
-            else:
-                print(f'After the -c | --csv option, a csv-file should follow.{help}')
-                sys.exit()
-        elif option[0] in ('-t', '--types'):
-            create_dictionary(option[1].upper())
-            dict_is_default = False
-        elif option[0] in ('-o', '--overwrite'):
-            allow_overwrite = True
-    if xml_name == '':
-        print(f'The -x | --xml option is required.{help}')
-        sys.exit()
-    if csv_name == '':
-        csv_name = xml_name.split('.')[0] + csv
-    if dict_is_default:
-        create_dictionary('FW,H,GU,FH,GZ,C,M,CH,A')
-    if os.path.isfile(csv_name) and not allow_overwrite:
-        print(f'{csv_name} already exists. Use the -o | --overwrite option to allow overwriting.{help}')
-    else:
-        try:
-            convert(xml_name, csv_name)
-            print(f'Conversion complete. New file {csv_name} created')
-        except:
-            print('Conversion failed.')
+if __name__ == '__main__':
+    main()
