@@ -90,26 +90,28 @@ def create_dictionary(arguments):
             sys.exit()
         provider_types[touple[0]] = touple[1]
 
-# Main-function: Conversion of the xml-file
-def convert(xml_name, csv_name):
-    # Parse the xml-file with the given name
+def convert(input_file, output_file):
+    root = parse_xml(input_file)
+    write_csv(root, output_file)
+
+def parse_xml(input_file):                
     try:
-        xmlTree = ET.parse(xml_name)
+        xmlTree = ET.parse(input_file)
     except FileNotFoundError:
-        print(f'The file {xml_name} does not exist.')
+        print(f'The file {input_file} does not exist')
         sys.exit()
     except ET.ParseError:
-        print(f'The file {xml_name} somehow cannot be parsed')
+        print(f'The file {input_file} somehow cannot be parsed')
         sys.exit()
-    root = xmlTree.getroot()
+    return xmlTree.getroot()
 
+def write_csv(root, output_file):
     prefix = '{http://www.tbox.ch/dms/xmlstandardexport}'
-
     assert root.tag == f'{prefix}StandardExport'
     export_date = root.attrib.get('ExportDate').split('+')[0]
 
     # Create the output-file 
-    with open(csv_name, 'w') as w:
+    with open(output_file, 'w') as w:
         w.write('CompanyName1,TouristicObjectType,Classification,Street,ZipCode,City:de,CountryCode,Internet,Email,Phone,Fax,Images,LastModification,ObjectID,ExportDate,Latitude,Longitude\n')
         for provider in root:
             for group in provider:
